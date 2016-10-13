@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Accidents involving the transportation of ethanol from 1985 through 2015</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.10.1/metricsgraphics.min.css.map">
+    <link rel="stylesheet" href="css/metricgraphics.css">
+    <style>
+        #ethanol-map { height: 400px; }
+    </style>
+</head>
+<body onload="javascript:startJS();">
+<div class="container">
+    <div class="row">
+        <div class="col-xs-8">
+            <h1>Ethanol Spills, 1985 through 2015</h1>
+        </div>
+    </div>
+    <hr>
+    <!-- BODY -->
+    <div class="row">
+        <div class="col-md-12"></div>
+    </div>
+
+    <!-- MAP -->
+    <div class="row">
+        <div class="col-md-12">
+            <div id="ethanol-map"></div>
+        </div>
+    </div>
+    <!-- GRAPHICS -->
+    <div class="row">
+        <div class="col-md-12" id="d-graphics">
+            <div id="data-graphics"></div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <p>Graphics and design by Acton H. Gorton</p>
+                <p>Copyright 2016, Midwest Center for Investigative Reporting, investigatemidwest.org</p>
+            </div>
+        </div>
+    </div>
+</footer>
+<script   src="http://code.jquery.com/jquery-3.1.1.slim.min.js"   integrity="sha256-/SIrNqv8h6QGKDuNoLGA4iret+kyesCkHGzVUUV0shc="   crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.7/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.10.1/metricsgraphics.min.js"></script>
+
+<script>
+    function startJS(){
+
+        //
+        // LEAFLET JS
+        //
+        var the_map = L.map('ethanol-map').setView([39.8282, -98.5795], 4);
+
+        L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/dark-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoiY3UtY2l0aXplbmFjY2VzcyIsImEiOiJtMlFZZ1Z3In0.4I5uQLUC2bv8cGEIGce4MA', {
+            maxZoom: 18
+        }).addTo(the_map);
+
+        //
+        // D3 AND METRICS GRAPHICS
+        //
+        d3.tsv('ei_geocoded.txt', function(data) {
+
+            data = d3.nest()
+                    .key(function(d){ return d.date })
+                    .rollup(function(leaves){ return leaves.length })
+                    .entries(data);
+
+            data = MG.convert.date(data, 'key');
+
+            MG.data_graphic({
+                title: "Ethanol Spills",
+                description: "Mouse around the chart",
+                data: data,
+                height: 200,
+                width: $("#d-graphics").width(),
+                right: 40,
+                target: '#data-graphics',
+                x_accessor: 'key',
+                y_accessor: 'value'
+            });
+        });
+//
+//        var test = [{'date':new Date('2014-11-01'),'value':12}, {'date':new Date('2014-11-02'),'value':18}]
+//        MG.data_graphic({
+//            title: "Ethanol Spills",
+//            description: "Mouse around the chart",
+//            data: test,
+//            height: 200,
+//            width: 600,
+//            right: 40,
+//            target: '#data-graphics',
+//            x_accessor: 'date',
+//            y_accessor: 'value'
+//        });
+
+    }
+</script>
+</body>
+</html>
