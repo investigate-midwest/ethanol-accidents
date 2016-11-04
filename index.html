@@ -6,14 +6,13 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Accidents involving the transportation of ethanol from 1985 through 2015</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.10.1/metricsgraphics.min.css.map">
-    <link rel="stylesheet" href="css/metricgraphics.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.10.1/metricsgraphics.min.css.map" />
+    <link rel="stylesheet" href="css/metricgraphics.css" />
     <style>
         #ethanol-map { height: 400px; }
-        .mg-data-table { width: 100%; }
     </style>
 </head>
 <body onload="javascript:startJS();">
@@ -50,23 +49,11 @@
     <!-- GRAPHICS -->
     <div class="row" style="margin-top: 50px;">
         <div class="col-md-12" id="dg1"></div>
-        <div class="col-md-6" id="dg2"></div>
-        <div class="col-md-6" id="dg3"></div>
-
-        <div class="col-md-12" style="margin-top: 50px;">
-            <h2>A Look at the Transportation Methods</h2>
-        </div>
-        <div class="col-md-12" id="dga"></div>
-        <div class="col-md-12" id="dgf"></div>
-        <div class="col-md-12" id="dgw"></div>
-        <div class="col-md-12" id="dgr"></div>
-        <div class="col-md-12" id="dgh"></div>
-
-
+        <div class="col-md-12" id="dg2"></div>
         <div class="col-md-12" style="margin-top: 50px;">
             <h2>Accidents in Each State</h2>
         </div>
-        <div class="col-md-12" id="acc_by_st"></div>
+        <div class="col-md-12" id="acc_by_st_table"></div>
     </div>
     <!-- BOTTOM -->
     <div class="row">
@@ -90,14 +77,16 @@
 <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.2.7/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/metrics-graphics/2.10.1/metricsgraphics.min.js"></script>
+<script src="js/heatmap.min.js"></script>
+<script src="js/leaflet-heatmap.js"></script>
 
 <script>
-    function startJS(){
+    function startJS() {
 
         //
         // LEAFLET JS
         //
-        var the_map = L.map('ethanol-map', { scrollWheelZoom:false }).setView([39.8282, -98.5795], 4);
+        var the_map = L.map('ethanol-map', {scrollWheelZoom: false}).setView([39.8282, -98.5795], 4);
 
         var map_tiles = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.{ext}', {
             attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -106,26 +95,56 @@
             ext: 'png'
         });
 
+        var heatData = {
+            max: 8,
+            data: []
+        };
+
+        var cfg = {
+            "radius": 0.5,
+            "maxOpacity": .8,
+            "scaleRadius": true,
+            "useLocalExtrema": true,
+            latField: 'lat',
+            lngField: 'lon',
+            valueField: 'count',
+            gradient: {
+                '.4': 'violet',
+                '.5': 'blue',
+                '.6': 'green',
+                '.7': 'yellow',
+                '.8': 'orange',
+                '1': 'red'
+            }
+        };
+
+        var heatmapLayer = new HeatmapOverlay(cfg);
+
         map_tiles.addTo(the_map);
+        heatmapLayer.addTo(the_map);
 
         //
         // D3 AND METRICS GRAPHICS
         //
-        d3.tsv('ei_geocoded.txt', function(data) {
+        d3.tsv('ei_geocoded.txt', function (data) {
 
             //
             // Graphic for Frequency Count
             //
             var freq_data = d3.nest()
-                .key(function(d){ return d.date })
-                .rollup(function(leaves){ return leaves.length })
-                .entries(data);
+                    .key(function (d) {
+                        return d.date
+                    })
+                    .rollup(function (leaves) {
+                        return leaves.length
+                    })
+                    .entries(data);
 
             freq_data = MG.convert.date(freq_data, 'key');
 
             MG.data_graphic({
                 title: "Frequency of Ethanol Spills from 1985 throughout 2015",
-                description: "Mouse around the chart",
+                description: "Drag the crosshair over the chart to zoom.",
                 data: freq_data,
                 height: 200,
                 width: $("#dg1").width(),
@@ -133,214 +152,60 @@
                 target: '#dg1',
                 x_accessor: 'key',
                 y_accessor: 'value',
-                linked: true,
+                linked: false,
                 color: '#8C001A',
-                animate_on_load: true,
+                animate_on_load: false,
                 y_extended_ticks: true,
                 x_label: 'Date',
                 y_label: 'Spills',
+                y_rug: true,
+                mouseover: function(d, i){
+                    var x = data.slice(0, i);
+                    var y = x.map(function(record){
+                        return { 'lat': record.latitude, 'lon': record.longitude, 'count': 1 }
+                    });
+                    heatData.data = y;
+                    heatmapLayer.setData(heatData);
+
+                }
             });
-
-            //
-            // Graphic for Serious Incidents
-            //
-            var si_data = d3.nest()
-                    .key(function(d){ return d.date })
-                    .rollup(function(leaves){ return d3.sum(leaves, function(d) {return parseInt(d.serious_incident)}) })
-                    .entries(data);
-
-            si_data = MG.convert.date(si_data, 'key');
-
-            MG.data_graphic({
-                title: "Serious Incidents",
-                description: "Mouse around the chart",
-                data: si_data,
-                height: 200,
-                width: $("#dg2").width(),
-                right: 40,
-                target: '#dg2',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                color: '#8C001A',
-                animate_on_load: true,
-            });
-
-            //
-            // Graphic for Serious Fatalities
-            //
-            var sf_data = d3.nest()
-                    .key(function(d){ return d.date })
-                    .rollup(function(leaves){ return d3.sum(leaves, function(d) {return parseInt(d.serious_fatality)}) })
-                    .entries(data);
-
-            sf_data = MG.convert.date(sf_data, 'key');
-
-            MG.data_graphic({
-                title: "Serious Fatalities",
-                description: "Mouse around the chart",
-                data: sf_data,
-                height: 200,
-                width: $("#dg3").width(),
-                right: 40,
-                target: '#dg3',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                color: '#8C001A',
-                animate_on_load: true,
-            });
-
-            //
-            // Graphic for Incident by Transportation Type
-            //
-
-            var trans_a = MG.convert.date(
-                    d3.nest()
-                        .key(function(d){ return d.date })
-                        .rollup(function(leaves) { return d3.sum(leaves, function(d){ if (d.transportation == 'A'){ return d.transportation.length } } )})
-                        .entries(data), 'key');
-
-            var trans_f = MG.convert.date(
-                    d3.nest()
-                        .key(function(d){ return d.date })
-                        .rollup(function(leaves) { return d3.sum(leaves, function(d){ if (d.transportation == 'F'){ return d.transportation.length } } )})
-                        .entries(data), 'key');
-
-            var trans_h = MG.convert.date(
-                    d3.nest()
-                        .key(function(d){ return d.date })
-                        .rollup(function(leaves) { return d3.sum(leaves, function(d){ if (d.transportation == 'H'){ return d.transportation.length } } )})
-                        .entries(data), 'key');
-
-            var trans_r = MG.convert.date(
-                    d3.nest()
-                        .key(function(d){ return d.date })
-                        .rollup(function(leaves) { return d3.sum(leaves, function(d){ if (d.transportation == 'R'){ return d.transportation.length } } )})
-                        .entries(data), 'key');
-
-            var trans_w = MG.convert.date(
-                    d3.nest()
-                        .key(function(d){ return d.date })
-                        .rollup(function(leaves) { return d3.sum(leaves, function(d){ if (d.transportation == 'W'){ return d.transportation.length } } )})
-                        .entries(data), 'key');
-
-            MG.data_graphic({
-                title: "Spills with Aircraft Transportation",
-                description: "Mouse around the chart",
-                data: trans_a,
-                height: 200,
-                width: $("#dga").width(),
-                right: 40,
-                target: '#dga',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                animate_on_load: true,
-                color: 'black'
-            });
-
-            MG.data_graphic({
-                title: "Spills with Freight Forwarding Transportation",
-                description: "Mouse around the chart",
-                data: trans_f,
-                height: 200,
-                width: $("#dgf").width(),
-                right: 40,
-                target: '#dgf',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                animate_on_load: true,
-                color: 'green'
-            });
-
-            MG.data_graphic({
-                title: "Spills with Water Transportation",
-                description: "Mouse around the chart",
-                data: trans_w,
-                height: 200,
-                width: $("#dgh").width(),
-                right: 40,
-                target: '#dgh',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                animate_on_load: true,
-                color: 'blue'
-            });
-
-            MG.data_graphic({
-                title: "Spills with Rail Transportation",
-                description: "Mouse around the chart",
-                data: trans_r,
-                height: 200,
-                width: $("#dgr").width(),
-                right: 40,
-                target: '#dgr',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                animate_on_load: true,
-                color: 'purple'
-            });
-
-            MG.data_graphic({
-                title: "Spills with Highway Transportation",
-                description: "Mouse around the chart",
-                data: trans_h,
-                height: 200,
-                width: $("#dgw").width(),
-                right: 40,
-                target: '#dgw',
-                x_accessor: 'key',
-                y_accessor: 'value',
-                linked: true,
-                animate_on_load: true,
-                color: 'orange'
-            });
-
 
             //
             // Table Data
             //
-            var table_data = [
-                { 'year': 1852, 'value1': 10.2, 'value2': 1030004.43423,'share': 0.12, 'total': 34003400, 'temp': 43, 'geo': 'United Kingdom', 'description': "Having a way of describing a row can be useful." },
-                { 'year': 1901, 'value1': 10.1, 'value2': 54003.223, 'share': 0.11, 'total': 4302100, 'temp': 55, 'geo': 'United States', 'description': "More made-up numbers." },
-                { 'year': 1732, 'value1': 4.3, 'value2': 1004.91422,   'share': 0.14, 'total': 4300240, 'temp': 42, 'geo': 'France', 'description': "We didn't specify a title for this column." },
-                { 'year': 1945, 'value1': 2.9, 'value2': 2430.121,  'share': 0.23, 'total': 24000000, 'temp': 54, 'geo': 'Brazil', 'description': "Brazil, Brazil." },
-                { 'year': 1910, 'value1': 1.0, 'value2': 5432.3,  'share': 0.19, 'total': 130000, 'temp': 52, 'geo': 'India', 'description': "Last description in the whole thing." }
-            ];
+            var table_data = d3.nest()
+                    .key(function (d) {
+                        return d.incident_state
+                    }).sortKeys(d3.ascending)
+                    .rollup(function (d) {
+                        return {'record_count': d.length, 'serious_injury': d.length}
+                    })
+                    .entries(data);
 
-            var acc_by_st = MG.data_table({
-                title: "A Data Table",
-                description: "A table is often the most appropriate way to present data. We aim to make the creation of data tables very simple. We are working on implementing sparklines, bullet charts, and other niceties.",
-                data: table_data,
-                show_tooltips: true
-            })
-                .target('#acc_by_st')
-                .title({
-                    accessor: 'geo',
-                    secondary_accessor:'year',
-                    label: 'Country',
-                    description: "These are arbitrary countries with arbitrary years underneath."
-                })
-                .number({ accessor: 'value1', label: 'Size', value_formatter: function(d){ return d + ' yrds'; }})
-                .number({ accessor: 'value2', label: 'Score', round: 2,  font_weight: 'bold' })
-                .number({ accessor: 'temp', label: 'Temp.', format: 'temperature', width: 100, color: 'gray' })
-                .number({
-                    accessor: 'total',
-                    label: 'Volume',
-                    format: 'count', currency: '$',
-                    width: 100,
-                    font_weight: function(d){ return d < 5000000 ? 'bold' : 'normal'; },
-                    color: function(d){ return d < 5000000 ? '#f70101' : 'auto'; }
-                })
-                .number({ accessor: 'share', label: 'Share', format: 'percentage', width: 100 })
-                .text({ accessor: 'description', width: 240, font_style: 'italic' })
-                .display();
-        });
+            var acc_table = d3.select("#acc_by_st_table").append('table').attr('class', 'table table-condensed table-striped');
+            var acc_table_head = acc_table.append("thead");
 
+            acc_table_head.selectAll("td")
+                    .data( function(){ return ["State", "Incidents", "Other Incidents"] })
+                    .enter()
+                    .append("td")
+                    .attr('style', 'font-weight: bold;')
+                    .html( function(d){ return d });
+
+            var acc_table_body = acc_table.append("tbody");
+
+            var acc_table_rows = acc_table_body.selectAll("tr")
+                    .data(table_data)
+                    .enter()
+                    .append("tr");
+
+            acc_table_rows.selectAll("td")
+                    .data( function(row){ return [row.key, row.value.record_count, row.value.serious_injury] })
+                    .enter()
+                    .append("td")
+                    .html( function(d){ return d })
+
+        })
     }
 </script>
 </body>
