@@ -141,6 +141,8 @@
                     .entries(data);
 
             freq_data = MG.convert.date(freq_data, 'key');
+            heatData.data = data.map(function(record){return {'lat': record.latitude, 'lon': record.longitude, 'count': 1 }});
+            heatmapLayer.setData(heatData);
 
             MG.data_graphic({
                 title: "Frequency of Ethanol Spills from 1985 throughout 2015",
