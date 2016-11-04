@@ -161,10 +161,9 @@
                 y_rug: true,
                 mouseover: function(d, i){
                     var x = data.slice(0, i);
-                    var y = x.map(function(record){
+                    heatData.data = x.map(function(record){
                         return { 'lat': record.latitude, 'lon': record.longitude, 'count': 1 }
                     });
-                    heatData.data = y;
                     heatmapLayer.setData(heatData);
 
                 }
