@@ -13,6 +13,35 @@
     <link rel="stylesheet" href="css/metricgraphics.css" />
     <style>
         #ethanol-map { height: 400px; }
+        #acc_table thead tr th {
+            border-bottom: 1px solid darkgray;
+            cursor: default;
+            font-weight: normal;
+            padding: 5px 5px 8px 5px;
+            font-size: 12px;
+        }
+        #acc_table td:nth-child(1) {
+            font-weight: bold;
+        }
+        #acc_table td:nth-child(3){
+            color: red;
+        }
+        #acc_table thead tr th {
+            border-bottom: 1px solid darkgray;
+            cursor: default;
+            font-weight: bold;
+            padding: 5px 5px 8px 5px;
+            text-align: right;
+        }
+        #acc_table tbody tr td {
+            margin: 2px;
+            padding: 5px;
+            vertical-align: top;
+            width: 150px;
+            text-align: right;
+            font-weight: normal;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body onload="javascript:startJS();">
@@ -25,17 +54,19 @@
     <!-- BODY -->
     <div class="row">
         <div class="col-md-8">
-            <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+            <p class="lead">Over the past 30 years, ethanol spills have increased tenfold as production and transportation of the biofuel has spiked.</p>
+            <p class="lead">Today, ethanol spills happen twice a day in the United States, causing millions of dollars worth of damages and leading to significant injury and loss of life. Spills occur on the West Coast and the East Coast and everywhere in between. They happen near cities and in rural areas. They happen by truck and by rail.</p>
         </div>
         <div class="col-md-4">
             <blockquote>
-                <p>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
-                <footer>Lorem Ipsum at <cite title="Source">www.lipsum.com</cite></footer>
+                <p>"As more and more ethanol is being transported, more and more accidents are going to occur. The potentials for different kinds of accidents are getting higher and higher."</p>
+                <footer>Mark Clapp, <cite title="Source">Illinois Fire Service Institute</cite></footer>
             </blockquote>
 
         </div>
         <div class="col-md-12">
-            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
+            <p>Use this map to track the increase in ethanol spills from 1985 to 2015. You can see where the spills occurred over the decades and which areas have seen the most incidents. You can click on any year to see how many spills happened up to that point and where the spills had occurred. Below the map, there is a table that shows how many spills occurred in each state, what types of spills these were (rail, highway, etc.) and how many of these caused significant damage.</p>
+            <p>You can read a full story about the impact of increased ethanol spills on the Midwest and the dangers of ethanol spills here.</p>
         </div>
     </div>
 
@@ -66,8 +97,8 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
-                <p>Graphics and design by Acton H. Gorton</p>
-                <p>Copyright 2016, Midwest Center for Investigative Reporting, investigatemidwest.org</p>
+                <p style="font-size: .9em;">Graphics and design by Acton H. Gorton</p>
+                <p style="font-size: .9em;">Copyright 2016, Midwest Center for Investigative Reporting, investigatemidwest.org</p>
             </div>
         </div>
     </div>
@@ -101,7 +132,7 @@
         };
 
         var cfg = {
-            "radius": 0.5,
+            "radius": 0.3,
             "maxOpacity": .8,
             "scaleRadius": true,
             "useLocalExtrema": true,
@@ -109,11 +140,11 @@
             lngField: 'lon',
             valueField: 'count',
             gradient: {
-                '.4': 'violet',
-                '.5': 'blue',
-                '.6': 'green',
-                '.7': 'yellow',
-                '.8': 'orange',
+                '.5': 'violet',
+                '.6': 'blue',
+                '.7': 'green',
+                '.8': 'yellow',
+                '.9': 'orange',
                 '1': 'red'
             }
         };
@@ -141,12 +172,19 @@
                     .entries(data);
 
             freq_data = MG.convert.date(freq_data, 'key');
-            heatData.data = data.map(function(record){return {'lat': record.latitude, 'lon': record.longitude, 'count': 1 }});
+            heatData.data = data.map(function(record){
+
+                    return {
+                        'lat': record.latitude,
+                        'lon': record.longitude,
+                        'count': d3.sum(record, function(v){ return v })
+                    }
+            });
             heatmapLayer.setData(heatData);
 
             MG.data_graphic({
                 title: "Frequency of Ethanol Spills from 1985 throughout 2015",
-                description: "Drag the crosshair over the chart to zoom.",
+                description: "Spills",
                 data: freq_data,
                 height: 200,
                 width: $("#dg1").width(),
@@ -167,7 +205,6 @@
                         return { 'lat': record.latitude, 'lon': record.longitude, 'count': 1 }
                     });
                     heatmapLayer.setData(heatData);
-
                 }
             });
 
@@ -175,22 +212,98 @@
             // Table Data
             //
             var table_data = d3.nest()
-                    .key(function (d) {
-                        return d.incident_state
-                    }).sortKeys(d3.ascending)
+                    .key(function (d) { return d.incident_state })
+                    .sortKeys(d3.ascending)
                     .rollup(function (d) {
-                        return {'record_count': d.length, 'serious_injury': d.length}
+                        return {
+                            'record_count': d.length,
+                            'serious': d3.sum(d, function(v){ return v.serious_incident }),
+                            'highway': d3.sum(d, function(v){ return ((v.transportation) == "H"? 1:0) }),
+                            'rail': d3.sum(d, function(v){ return ((v.transportation) == "R"? 1:0) }),
+                            'waterway': d3.sum(d, function(v){ return ((v.transportation) == "W"? 1:0) }),
+                            'air': d3.sum(d, function(v){ return ((v.transportation) == "A"? 1:0) }),
+                            'freight': d3.sum(d, function(v){ return ((v.transportation) == "F"? 1:0) }),
+                        }
                     })
                     .entries(data);
 
-            var acc_table = d3.select("#acc_by_st_table").append('table').attr('class', 'table table-condensed table-striped');
-            var acc_table_head = acc_table.append("thead");
+            var state_names = {
+                'AK': 'Alaska',
+                'AL': 'Alabama',
+                'AR': 'Arkansas',
+                'AZ': 'Arizona',
+                'CA': 'California',
+                'CO': 'Colorado',
+                'CT': 'Connecticut',
+                'DC': 'D.C.',
+                'DE': 'Delaware',
+                'FL': 'Florida',
+                'GA': 'Georgia',
+                'HI': 'Hawaii',
+                'IA': 'Iowa',
+                'ID': 'Idaho',
+                'IL': 'Illinois',
+                'IN': 'Indiana',
+                'KS': 'Kansas',
+                'KY': 'Kentucky',
+                'LA': 'Louisiana',
+                'MA': 'Massachusetts',
+                'MD': 'Maryland',
+                'ME': 'Maine',
+                'MI': 'Michigan',
+                'MN': 'Minnesota',
+                'MO': 'Missouri',
+                'MS': 'Mississippi',
+                'MT': 'Montana',
+                'NC': 'North Carolina',
+                'ND': 'North Dakota',
+                'NE': 'Nebraska',
+                'NH': 'New Hampshire',
+                'NJ': 'New Jersey',
+                'NM': 'New Mexico',
+                'NV': 'Nevada',
+                'NY': 'New York',
+                'OH': 'Ohio',
+                'OK': 'Oklahoma',
+                'OR': 'Oregon',
+                'PA': 'Pennsylvania',
+                'PR': 'Puerto Rico',
+                'RI': 'Rhode Island',
+                'SC': 'South Carolina',
+                'SD': 'South Dakota',
+                'TN': 'Tennessee',
+                'TX': 'Texas',
+                'UT': 'Utah',
+                'VA': 'Virginia',
+                'VT': 'Vermont',
+                'WA': 'Washington',
+                'WI': 'Wisconsin',
+                'WV': 'West Virginia',
+                'WY': 'Wyoming'
+            };
 
-            acc_table_head.selectAll("td")
-                    .data( function(){ return ["State", "Incidents", "Other Incidents"] })
+            var acc_table = d3.select("#acc_by_st_table")
+                    .append('table')
+                    .attr('id', 'acc_table')
+                    .attr('class', 'col-md-8 col-md-offset-2');
+
+            var acc_table_head = acc_table.append("thead").append("tr");
+
+            acc_table_head.selectAll("th")
+                    .data( function(){ return [
+                        "",
+                        "Total",
+                        "Serious",
+                        "Highway",
+                        "Railway",
+                        "Waterway",
+                        "Airway",
+                        "Freight Forward"
+                    ] })
                     .enter()
-                    .append("td")
-                    .attr('style', 'font-weight: bold;')
+                    .append("th")
+//                    .attr('style', 'font-weight: bold;')
+                    .attr('class', 'col-md-1')
                     .html( function(d){ return d });
 
             var acc_table_body = acc_table.append("tbody");
@@ -201,12 +314,22 @@
                     .append("tr");
 
             acc_table_rows.selectAll("td")
-                    .data( function(row){ return [row.key, row.value.record_count, row.value.serious_injury] })
+                    .data( function(row){ return[
+                            state_names[row.key],
+                            row.value.record_count,
+                            row.value.serious,
+                            row.value.highway,
+                            row.value.rail,
+                            row.value.waterway,
+                            row.value.air,
+                            row.value.freight
+                    ]})
                     .enter()
                     .append("td")
-                    .html( function(d){ return d })
+                    .html( function(d){ return d });
 
-        })
+        });
+
     }
 </script>
 </body>
