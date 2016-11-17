@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Accidents involving the transportation of ethanol from 1985 through 2015</title>
+    <title>Incidents involving the transportation of ethanol from 1985 through 2015</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
@@ -28,7 +28,7 @@
         }
         #acc_table thead tr th {
             border-bottom: 1px solid darkgray;
-            cursor: default;
+            cursor: pointer;
             font-weight: bold;
             padding: 5px 5px 8px 5px;
             text-align: right;
@@ -73,7 +73,7 @@
     <!-- MAP -->
     <div class="row">
         <div class="col-md-12">
-            <h2>Frequency of Accidents</h2>
+            <h2>Frequency of Incidents</h2>
             <div id="ethanol-map"></div>
         </div>
     </div>
@@ -82,7 +82,7 @@
         <div class="col-md-12" id="dg1"></div>
         <div class="col-md-12" id="dg2"></div>
         <div class="col-md-12" style="margin-top: 50px;">
-            <h2>Accidents in Each State</h2>
+            <h2>Incidents in Each State</h2>
         </div>
         <div class="col-md-12" id="acc_by_st_table"></div>
     </div>
@@ -112,6 +112,9 @@
 <script src="js/leaflet-heatmap.js"></script>
 
 <script>
+
+    var wtf;
+
     function startJS() {
 
         //
@@ -211,7 +214,9 @@
             //
             // Table Data
             //
-            var table_data = d3.nest()
+            function build_table(data){
+
+                var table_data = d3.nest()
                     .key(function (d) { return d.incident_state })
                     .sortKeys(d3.ascending)
                     .rollup(function (d) {
@@ -222,76 +227,92 @@
                             'rail': d3.sum(d, function(v){ return ((v.transportation) == "R"? 1:0) }),
                             'waterway': d3.sum(d, function(v){ return ((v.transportation) == "W"? 1:0) }),
                             'air': d3.sum(d, function(v){ return ((v.transportation) == "A"? 1:0) }),
-                            'freight': d3.sum(d, function(v){ return ((v.transportation) == "F"? 1:0) }),
+                            'freight': d3.sum(d, function(v){ return ((v.transportation) == "F"? 1:0) })
                         }
                     })
                     .entries(data);
 
-            var state_names = {
-                'AK': 'Alaska',
-                'AL': 'Alabama',
-                'AR': 'Arkansas',
-                'AZ': 'Arizona',
-                'CA': 'California',
-                'CO': 'Colorado',
-                'CT': 'Connecticut',
-                'DC': 'D.C.',
-                'DE': 'Delaware',
-                'FL': 'Florida',
-                'GA': 'Georgia',
-                'HI': 'Hawaii',
-                'IA': 'Iowa',
-                'ID': 'Idaho',
-                'IL': 'Illinois',
-                'IN': 'Indiana',
-                'KS': 'Kansas',
-                'KY': 'Kentucky',
-                'LA': 'Louisiana',
-                'MA': 'Massachusetts',
-                'MD': 'Maryland',
-                'ME': 'Maine',
-                'MI': 'Michigan',
-                'MN': 'Minnesota',
-                'MO': 'Missouri',
-                'MS': 'Mississippi',
-                'MT': 'Montana',
-                'NC': 'North Carolina',
-                'ND': 'North Dakota',
-                'NE': 'Nebraska',
-                'NH': 'New Hampshire',
-                'NJ': 'New Jersey',
-                'NM': 'New Mexico',
-                'NV': 'Nevada',
-                'NY': 'New York',
-                'OH': 'Ohio',
-                'OK': 'Oklahoma',
-                'OR': 'Oregon',
-                'PA': 'Pennsylvania',
-                'PR': 'Puerto Rico',
-                'RI': 'Rhode Island',
-                'SC': 'South Carolina',
-                'SD': 'South Dakota',
-                'TN': 'Tennessee',
-                'TX': 'Texas',
-                'UT': 'Utah',
-                'VA': 'Virginia',
-                'VT': 'Vermont',
-                'WA': 'Washington',
-                'WI': 'Wisconsin',
-                'WV': 'West Virginia',
-                'WY': 'Wyoming'
-            };
+                var state_names = {
+                    'AK': 'Alaska',
+                    'AL': 'Alabama',
+                    'AR': 'Arkansas',
+                    'AZ': 'Arizona',
+                    'CA': 'California',
+                    'CO': 'Colorado',
+                    'CT': 'Connecticut',
+                    'DC': 'D.C.',
+                    'DE': 'Delaware',
+                    'FL': 'Florida',
+                    'GA': 'Georgia',
+                    'HI': 'Hawaii',
+                    'IA': 'Iowa',
+                    'ID': 'Idaho',
+                    'IL': 'Illinois',
+                    'IN': 'Indiana',
+                    'KS': 'Kansas',
+                    'KY': 'Kentucky',
+                    'LA': 'Louisiana',
+                    'MA': 'Massachusetts',
+                    'MD': 'Maryland',
+                    'ME': 'Maine',
+                    'MI': 'Michigan',
+                    'MN': 'Minnesota',
+                    'MO': 'Missouri',
+                    'MS': 'Mississippi',
+                    'MT': 'Montana',
+                    'NC': 'North Carolina',
+                    'ND': 'North Dakota',
+                    'NE': 'Nebraska',
+                    'NH': 'New Hampshire',
+                    'NJ': 'New Jersey',
+                    'NM': 'New Mexico',
+                    'NV': 'Nevada',
+                    'NY': 'New York',
+                    'OH': 'Ohio',
+                    'OK': 'Oklahoma',
+                    'OR': 'Oregon',
+                    'PA': 'Pennsylvania',
+                    'PR': 'Puerto Rico',
+                    'RI': 'Rhode Island',
+                    'SC': 'South Carolina',
+                    'SD': 'South Dakota',
+                    'TN': 'Tennessee',
+                    'TX': 'Texas',
+                    'UT': 'Utah',
+                    'VA': 'Virginia',
+                    'VT': 'Vermont',
+                    'WA': 'Washington',
+                    'WI': 'Wisconsin',
+                    'WV': 'West Virginia',
+                    'WY': 'Wyoming'
+                };
 
-            var acc_table = d3.select("#acc_by_st_table")
+                var tbody_data = [];
+
+                for (var i = 0; i < table_data.length; i++){
+                    var tr = [
+                        state_names[table_data[i].key],
+                        table_data[i].value.record_count,
+                        table_data[i].value.serious,
+                        table_data[i].value.highway,
+                        table_data[i].value.rail,
+                        table_data[i].value.waterway,
+                        table_data[i].value.air,
+                        table_data[i].value.freight
+                    ];
+                    tbody_data.push(tr);
+                }
+
+                var acc_table = d3.select("#acc_by_st_table")
                     .append('table')
                     .attr('id', 'acc_table')
                     .attr('class', 'col-md-8 col-md-offset-2');
 
-            var acc_table_head = acc_table.append("thead").append("tr");
+                var acc_table_head = acc_table.append("thead").append("tr");
 
-            acc_table_head.selectAll("th")
+                acc_table_head.selectAll("th")
                     .data( function(){ return [
-                        "",
+                        "State",
                         "Total",
                         "Serious",
                         "Highway",
@@ -302,34 +323,47 @@
                     ] })
                     .enter()
                     .append("th")
-//                    .attr('style', 'font-weight: bold;')
                     .attr('class', 'col-md-1')
-                    .html( function(d){ return d });
+                    .text( function(d){ return d })
+                    .on("click", function(d, i) {
 
-            var acc_table_body = acc_table.append("tbody");
+                        acc_table_rows.sort(function (a, b) {
 
-            var acc_table_rows = acc_table_body.selectAll("tr")
-                    .data(table_data)
+                            if (d == "State"){
+                                return d3.ascending(a[i], b[i]);
+                            }
+
+                            else if (isNaN(a[d])) {
+                                return d3.descending(a[i], b[i]);
+                            }
+                            else {
+                                return a[i] - b[i];
+                            }
+
+                        })
+
+                    });
+
+                var acc_table_rows = acc_table.append("tbody")
+                    .selectAll("tr")
+                    .data(tbody_data)
                     .enter()
                     .append("tr");
 
-            acc_table_rows.selectAll("td")
-                    .data( function(row){ return[
-                            state_names[row.key],
-                            row.value.record_count,
-                            row.value.serious,
-                            row.value.highway,
-                            row.value.rail,
-                            row.value.waterway,
-                            row.value.air,
-                            row.value.freight
-                    ]})
+                var acc_table_cells = acc_table_rows.selectAll("td")
+                    .data( function(d){ return d} )
                     .enter()
                     .append("td")
-                    .html( function(d){ return d });
+                    .text( function(d){ return d });
+
+                return acc_table
+
+            }
+
+            // build the table
+            var bt = build_table(data);
 
         });
-
     }
 </script>
 </body>
