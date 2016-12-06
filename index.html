@@ -47,6 +47,13 @@
 <body onload="javascript:startJS();">
 <div class="container">
     <div class="row">
+        <div class="col-md-6">
+            <a href="http://www.investigatemidwest.org">
+                <img src="images/midwest-logo.gif" style="width: auto; margin-top: 20px;">
+            </a>
+        </div>
+    </div>
+    <div class="row">
         <div class="page-header">
             <h1>Ethanol Spills, 1985 through 2015</h1>
         </div>
@@ -74,15 +81,18 @@
     <div class="row">
         <div class="col-md-12">
             <h2>Frequency of Incidents</h2>
+            <p>Map shows the accumulation of incidents throughout the country.</p>
             <div id="ethanol-map"></div>
         </div>
     </div>
     <!-- GRAPHICS -->
     <div class="row" style="margin-top: 50px;">
+        <h2>Frequency of Ethanol Spills from 1985 throughout 2015</h2>
+        <p>Mouse over the timeline to update the map with the number of incidents.</p>
         <div class="col-md-12" id="dg1"></div>
-        <div class="col-md-12" id="dg2"></div>
         <div class="col-md-12" style="margin-top: 50px;">
             <h2>Incidents in Each State</h2>
+            <p>Click on the column names to sort the table.</p>
         </div>
         <div class="col-md-12" id="acc_by_st_table"></div>
     </div>
@@ -97,8 +107,8 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12">
-                <p style="font-size: .9em;">Graphics and design by Acton H. Gorton</p>
-                <p style="font-size: .9em;">Copyright 2016, Midwest Center for Investigative Reporting, investigatemidwest.org</p>
+                <p style="font-size: .9em; font-style: italic;">Graphics and design by Acton H. Gorton</p>
+                <p style="font-size: .9em; font-style: italic;">Copyright 2016, Midwest Center for Investigative Reporting, investigatemidwest.org</p>
             </div>
         </div>
     </div>
@@ -112,8 +122,6 @@
 <script src="js/leaflet-heatmap.js"></script>
 
 <script>
-
-    var wtf;
 
     function startJS() {
 
@@ -189,8 +197,6 @@
             heatmapLayer.setData(heatData);
 
             MG.data_graphic({
-                title: "Frequency of Ethanol Spills from 1985 throughout 2015",
-                description: "Spills",
                 data: freq_data,
                 height: 200,
                 width: $("#dg1").width(),
